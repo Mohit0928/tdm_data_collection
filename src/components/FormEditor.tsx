@@ -62,6 +62,19 @@ export default function FormEditor({ config, onChange }: FormEditorProps) {
   const [newLabel, setNewLabel] = useState<string>("");
   const [newOption, setNewOption] = useState({ code: 0, label: "" });
 
+  const [newSelectOption, setNewSelectOption] = useState("");
+  const [editingSelectOptionIndex, setEditingSelectOptionIndex] = useState<
+    number | null
+  >(null);
+  const [editingSelectOptionValue, setEditingSelectOptionValue] = useState("");
+
+  // For editing dialog
+  const [editSelectOption, setEditSelectOption] = useState("");
+  const [editSelectOptionIndex, setEditSelectOptionIndex] = useState<
+    number | null
+  >(null);
+  const [editSelectOptionValue, setEditSelectOptionValue] = useState("");
+
   const handleAddGroup = () => {
     if (newGroup && !config.groups.includes(newGroup)) {
       const newGroups = [...config.groups, newGroup];
@@ -223,6 +236,94 @@ export default function FormEditor({ config, onChange }: FormEditorProps) {
       ...config,
       fields: items,
     });
+  };
+
+  // Add option to newField (Add New Field section)
+  const handleAddSelectOption = () => {
+    if (newSelectOption.trim()) {
+      setNewField((prev) => ({
+        ...prev,
+        options: [...(prev.options || []), newSelectOption.trim()],
+      }));
+      setNewSelectOption("");
+    }
+  };
+
+  // Remove option from newField
+  const handleRemoveSelectOption = (idx: number) => {
+    setNewField((prev) => ({
+      ...prev,
+      options: (prev.options || []).filter((_, i) => i !== idx),
+    }));
+  };
+
+  // Start editing an option in newField
+  const handleEditSelectOption = (idx: number) => {
+    setEditingSelectOptionIndex(idx);
+    setEditingSelectOptionValue(newField.options ? newField.options[idx] : "");
+  };
+
+  // Save edited option in newField
+  const handleSaveEditSelectOption = () => {
+    if (editingSelectOptionIndex !== null && editingSelectOptionValue.trim()) {
+      setNewField((prev) => ({
+        ...prev,
+        options: (prev.options || []).map((opt, i) =>
+          i === editingSelectOptionIndex
+            ? editingSelectOptionValue.trim()
+            : opt,
+        ),
+      }));
+      setEditingSelectOptionIndex(null);
+      setEditingSelectOptionValue("");
+    }
+  };
+
+  // Add option to editingField (Edit Field dialog)
+  const handleAddEditSelectOption = () => {
+    if (editSelectOption.trim() && editingField) {
+      setEditingField({
+        ...editingField,
+        options: [...(editingField.options || []), editSelectOption.trim()],
+      });
+      setEditSelectOption("");
+    }
+  };
+
+  // Remove option from editingField
+  const handleRemoveEditSelectOption = (idx: number) => {
+    if (editingField) {
+      setEditingField({
+        ...editingField,
+        options: (editingField.options || []).filter((_, i) => i !== idx),
+      });
+    }
+  };
+
+  // Start editing an option in editingField
+  const handleEditEditSelectOption = (idx: number) => {
+    setEditSelectOptionIndex(idx);
+    setEditSelectOptionValue(
+      editingField?.options ? editingField.options[idx] : "",
+    );
+  };
+
+  // Save edited option in editingField
+  const handleSaveEditEditSelectOption = () => {
+    if (
+      editSelectOptionIndex !== null &&
+      editSelectOptionValue.trim() &&
+      editingField
+    ) {
+      setEditingField({
+        ...editingField,
+        options: (editingField.options || []).map((opt, i) =>
+          i === editSelectOptionIndex ? editSelectOptionValue.trim() : opt,
+        ),
+      });
+      setEditSelectOptionIndex(null);
+      setEditSelectOptionValue("");
+    }
   };
 
   return (
@@ -430,6 +531,70 @@ export default function FormEditor({ config, onChange }: FormEditorProps) {
                       <ListItemText
                         primary={`${option.code} - ${option.label}`}
                       />
+                    </ListItem>
+                  ))}
+                </List>
+              </Grid>
+            )}
+
+            {newField.type === "select" && (
+              <Grid item xs={12}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Select Options:
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+                  <TextField
+                    size="small"
+                    label="New Option"
+                    value={newSelectOption}
+                    onChange={(e) => setNewSelectOption(e.target.value)}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleAddSelectOption}
+                    disabled={!newSelectOption.trim()}
+                  >
+                    Add
+                  </Button>
+                </Box>
+                <List dense>
+                  {(newField.options || []).map((option, idx) => (
+                    <ListItem key={idx}>
+                      {editingSelectOptionIndex === idx ? (
+                        <>
+                          <TextField
+                            size="small"
+                            value={editingSelectOptionValue}
+                            onChange={(e) =>
+                              setEditingSelectOptionValue(e.target.value)
+                            }
+                            sx={{ mr: 1 }}
+                          />
+                          <Button
+                            onClick={handleSaveEditSelectOption}
+                            size="small"
+                            variant="outlined"
+                          >
+                            Save
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <ListItemText primary={option} />
+                          <IconButton
+                            onClick={() => handleEditSelectOption(idx)}
+                            size="small"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => handleRemoveSelectOption(idx)}
+                            size="small"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </>
+                      )}
                     </ListItem>
                   ))}
                 </List>
@@ -733,6 +898,72 @@ export default function FormEditor({ config, onChange }: FormEditorProps) {
                         Add Option
                       </Button>
                     </Box>
+                  </Box>
+                )}
+
+                {editingField?.type === "select" && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Select Options
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+                      <TextField
+                        size="small"
+                        label="New Option"
+                        value={editSelectOption}
+                        onChange={(e) => setEditSelectOption(e.target.value)}
+                      />
+                      <Button
+                        variant="contained"
+                        onClick={handleAddEditSelectOption}
+                        disabled={!editSelectOption.trim()}
+                      >
+                        Add
+                      </Button>
+                    </Box>
+                    <List dense>
+                      {(editingField.options || []).map((option, idx) => (
+                        <ListItem key={idx}>
+                          {editSelectOptionIndex === idx ? (
+                            <>
+                              <TextField
+                                size="small"
+                                value={editSelectOptionValue}
+                                onChange={(e) =>
+                                  setEditSelectOptionValue(e.target.value)
+                                }
+                                sx={{ mr: 1 }}
+                              />
+                              <Button
+                                onClick={handleSaveEditEditSelectOption}
+                                size="small"
+                                variant="outlined"
+                              >
+                                Save
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <ListItemText primary={option} />
+                              <IconButton
+                                onClick={() => handleEditEditSelectOption(idx)}
+                                size="small"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                onClick={() =>
+                                  handleRemoveEditSelectOption(idx)
+                                }
+                                size="small"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </>
+                          )}
+                        </ListItem>
+                      ))}
+                    </List>
                   </Box>
                 )}
               </Box>

@@ -12,19 +12,19 @@ import {
   RadioGroup,
   Radio,
   FormLabel,
-} from '@mui/material';
-import { FormField as FormFieldType } from '../types';
-import { UseFormRegister } from 'react-hook-form';
+} from "@mui/material";
+import { FormField as FormFieldType } from "../types";
+import { UseFormRegister } from "react-hook-form";
 
 interface FormFieldProps {
   field: FormFieldType;
-  register: UseFormRegister<any>;
+  register: UseFormRegister<Record<string, any>>;
 }
 
 export default function FormField({ field, register }: FormFieldProps) {
   const renderField = () => {
     switch (field.type) {
-      case 'text':
+      case "text":
         return (
           <TextField
             {...register(field.id)}
@@ -36,7 +36,7 @@ export default function FormField({ field, register }: FormFieldProps) {
           />
         );
 
-      case 'number':
+      case "number":
         return (
           <TextField
             {...register(field.id)}
@@ -48,11 +48,14 @@ export default function FormField({ field, register }: FormFieldProps) {
             margin="normal"
           />
         );
-        
-      case 'date':
+
+      case "date":
         return (
           <Box sx={{ mt: 2, mb: 1 }}>
-            <Typography variant="body2" sx={{ mb: 0.5 }}>{field.label}{field.required ? ' *' : ''}</Typography>
+            <Typography variant="body2" sx={{ mb: 0.5 }}>
+              {field.label}
+              {field.required ? " *" : ""}
+            </Typography>
             <TextField
               {...register(field.id)}
               type="date"
@@ -63,23 +66,32 @@ export default function FormField({ field, register }: FormFieldProps) {
           </Box>
         );
 
-      case 'boolean':
+      case "boolean": {
         // Boolean field renders as radio buttons but stores 0/1
-        const trueLabel = field.booleanLabels?.trueLabel || '1 - Yes';
-        const falseLabel = field.booleanLabels?.falseLabel || '0 - No';
+        const trueLabel = field.booleanLabels?.trueLabel || "1 - Yes";
+        const falseLabel = field.booleanLabels?.falseLabel || "0 - No";
         return (
           <Box sx={{ mt: 2, mb: 1 }}>
             <FormControl component="fieldset" required={field.required}>
               <FormLabel component="legend">{field.label}</FormLabel>
               <RadioGroup row {...register(field.id)}>
-                <FormControlLabel value="1" control={<Radio />} label={trueLabel} />
-                <FormControlLabel value="0" control={<Radio />} label={falseLabel} />
+                <FormControlLabel
+                  value="1"
+                  control={<Radio />}
+                  label={trueLabel}
+                />
+                <FormControlLabel
+                  value="0"
+                  control={<Radio />}
+                  label={falseLabel}
+                />
               </RadioGroup>
             </FormControl>
           </Box>
         );
-        
-      case 'codedValue':
+      }
+
+      case "codedValue":
         // CodedValue field renders as radio buttons with custom codes and labels
         return (
           <Box sx={{ mt: 2, mb: 1 }}>
@@ -87,11 +99,11 @@ export default function FormField({ field, register }: FormFieldProps) {
               <FormLabel component="legend">{field.label}</FormLabel>
               <RadioGroup row {...register(field.id)}>
                 {field.codedOptions?.map((option) => (
-                  <FormControlLabel 
-                    key={option.code} 
-                    value={String(option.code)} 
-                    control={<Radio />} 
-                    label={`${option.code} - ${option.label}`} 
+                  <FormControlLabel
+                    key={option.code}
+                    value={String(option.code)}
+                    control={<Radio />}
+                    label={`${option.code} - ${option.label}`}
                   />
                 ))}
               </RadioGroup>
@@ -99,7 +111,7 @@ export default function FormField({ field, register }: FormFieldProps) {
           </Box>
         );
 
-      case 'select':
+      case "select":
         return (
           <FormControl fullWidth margin="normal">
             <InputLabel>{field.label}</InputLabel>
@@ -113,7 +125,7 @@ export default function FormField({ field, register }: FormFieldProps) {
           </FormControl>
         );
 
-      case 'range':
+      case "range":
         return (
           <FormControl fullWidth margin="normal">
             <InputLabel>{field.label}</InputLabel>
@@ -126,7 +138,7 @@ export default function FormField({ field, register }: FormFieldProps) {
           </FormControl>
         );
 
-      case 'checkbox':
+      case "checkbox":
         return (
           <FormControlLabel
             control={<Checkbox {...register(field.id)} />}
@@ -140,4 +152,4 @@ export default function FormField({ field, register }: FormFieldProps) {
   };
 
   return renderField();
-} 
+}
