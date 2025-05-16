@@ -13,12 +13,12 @@ import {
   Radio,
   FormLabel,
 } from "@mui/material";
-import { FormField as FormFieldType } from "../types";
+import { FormField as FormFieldType, FormData } from "../types";
 import { UseFormRegister } from "react-hook-form";
 
 interface FormFieldProps {
   field: FormFieldType;
-  register: UseFormRegister<Record<string, any>>;
+  register: UseFormRegister<FormData>;
 }
 
 export default function FormField({ field, register }: FormFieldProps) {
