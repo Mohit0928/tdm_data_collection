@@ -1,54 +1,60 @@
-import { useState, useEffect } from 'react'
-import { 
-  Box, 
-  Container, 
-  TextField, 
-  Typography, 
-  Paper, 
-  Tabs, 
-  Tab, 
-  Button, 
-  Switch, 
-  FormControlLabel, 
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Container,
+  TextField,
+  Typography,
+  Paper,
+  Tabs,
+  Tab,
+  Button,
+  Switch,
+  FormControlLabel,
   Divider,
-  Alert
-} from '@mui/material'
-import DynamicForm from './components/DynamicForm'
-import FormEditor from './components/FormEditor'
-import { defaultFormConfig } from './config/formConfig'
-import { FormConfig } from './types'
-import './App.css'
+  Alert,
+} from "@mui/material";
+import DynamicForm from "./components/DynamicForm";
+import FormEditor from "./components/FormEditor";
+import { defaultFormConfig } from "./config/formConfig";
+import { FormConfig } from "./types";
+import "./App.css";
 
 // Storage key for the form configuration
-const FORM_CONFIG_STORAGE_KEY = 'tdm_form_configuration';
-const RECENT_USER_IDS_KEY = 'tdm_recent_user_ids';
+const FORM_CONFIG_STORAGE_KEY = "tdm_form_configuration";
+const RECENT_USER_IDS_KEY = "tdm_recent_user_ids";
 const MAX_RECENT_IDS = 10;
 
 function App() {
-  const [userId, setUserId] = useState('')
-  const [showForm, setShowForm] = useState(false)
-  const [activeTab, setActiveTab] = useState(0)
-  const [formConfig, setFormConfig] = useState<FormConfig>(defaultFormConfig)
-  const [isNewRecord, setIsNewRecord] = useState(true)
-  const [recentUserIds, setRecentUserIds] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
-  
+  const [userId, setUserId] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [formConfig, setFormConfig] = useState<FormConfig>(defaultFormConfig);
+  const [isNewRecord, setIsNewRecord] = useState(true);
+  const [recentUserIds, setRecentUserIds] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
   // Load the saved configuration when the component mounts
   useEffect(() => {
     try {
-      console.log('App component mounting...');
+      console.log("App component mounting...");
       const savedConfig = localStorage.getItem(FORM_CONFIG_STORAGE_KEY);
       if (savedConfig) {
         try {
           const parsedConfig = JSON.parse(savedConfig);
           setFormConfig(parsedConfig);
-          console.log('Form configuration loaded from local storage:', parsedConfig);
+          console.log(
+            "Form configuration loaded from local storage:",
+            parsedConfig,
+          );
         } catch (error) {
-          console.error('Error loading form configuration from local storage:', error);
-          setError('Error loading form configuration');
+          console.error(
+            "Error loading form configuration from local storage:",
+            error,
+          );
+          setError("Error loading form configuration");
         }
       } else {
-        console.log('No saved configuration found, using default config');
+        console.log("No saved configuration found, using default config");
       }
 
       // Load recent user IDs
@@ -57,14 +63,14 @@ function App() {
         try {
           const parsedUserIds = JSON.parse(savedUserIds);
           setRecentUserIds(parsedUserIds);
-          console.log('Recent user IDs loaded:', parsedUserIds);
+          console.log("Recent user IDs loaded:", parsedUserIds);
         } catch (error) {
-          console.error('Error loading recent user IDs:', error);
+          console.error("Error loading recent user IDs:", error);
         }
       }
     } catch (error) {
-      console.error('Error in App component initialization:', error);
-      setError('Error initializing application');
+      console.error("Error in App component initialization:", error);
+      setError("Error initializing application");
     }
   }, []);
 
@@ -73,12 +79,12 @@ function App() {
     setFormConfig(newConfig);
     try {
       localStorage.setItem(FORM_CONFIG_STORAGE_KEY, JSON.stringify(newConfig));
-      console.log('Form configuration saved to local storage');
+      console.log("Form configuration saved to local storage");
     } catch (error) {
-      console.error('Error saving form configuration to local storage:', error);
+      console.error("Error saving form configuration to local storage:", error);
     }
   };
-  
+
   // Function to generate a random ID
   const generateRandomId = () => {
     const timestamp = new Date().getTime().toString(36);
@@ -87,8 +93,8 @@ function App() {
   };
 
   const handleUserIdSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (isNewRecord && !userId.trim()) {
       // Generate a new ID if the user is creating a new record and didn't enter an ID
       const newId = generateRandomId();
@@ -100,8 +106,8 @@ function App() {
       saveUserIdToRecent(userId);
       setShowForm(true);
     }
-  }
-  
+  };
+
   const handleGenerateId = () => {
     setUserId(generateRandomId());
   };
@@ -127,10 +133,17 @@ function App() {
 
   // Add this function to reset the form configuration
   const handleResetConfig = () => {
-    if (window.confirm('Are you sure you want to reset the form configuration to defaults? This cannot be undone.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to reset the form configuration to defaults? This cannot be undone.",
+      )
+    ) {
       setFormConfig(defaultFormConfig);
-      localStorage.setItem(FORM_CONFIG_STORAGE_KEY, JSON.stringify(defaultFormConfig));
-      console.log('Form configuration reset to defaults');
+      localStorage.setItem(
+        FORM_CONFIG_STORAGE_KEY,
+        JSON.stringify(defaultFormConfig),
+      );
+      console.log("Form configuration reset to defaults");
     }
   };
 
@@ -140,19 +153,19 @@ function App() {
         <Typography variant="h4" component="h1" gutterBottom align="center">
           TDM Data Collection
         </Typography>
-        
+
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        
+
         {!showForm ? (
           <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
             <Typography variant="h6" gutterBottom>
               Patient Identification
             </Typography>
-            
+
             <FormControlLabel
               control={
                 <Switch
@@ -161,9 +174,11 @@ function App() {
                   color="primary"
                 />
               }
-              label={isNewRecord ? "Creating new record" : "Loading existing record"}
+              label={
+                isNewRecord ? "Creating new record" : "Loading existing record"
+              }
             />
-            
+
             <form onSubmit={handleUserIdSubmit}>
               <Box sx={{ mt: 2 }}>
                 <TextField
@@ -173,27 +188,34 @@ function App() {
                   onChange={(e) => setUserId(e.target.value)}
                   margin="normal"
                   required={!isNewRecord}
-                  helperText={isNewRecord ? "Leave blank to auto-generate ID, or enter a custom ID" : "Enter the existing patient ID to load their data"}
+                  helperText={
+                    isNewRecord
+                      ? "Leave blank to auto-generate ID, or enter a custom ID"
+                      : "Enter the existing patient ID to load their data"
+                  }
                 />
               </Box>
-              
+
               {isNewRecord && (
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-                  <Button 
-                    variant="outlined" 
-                    onClick={handleGenerateId}
-                  >
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Button variant="outlined" onClick={handleGenerateId}>
                     Generate ID
                   </Button>
                 </Box>
               )}
-              
+
               {!isNewRecord && recentUserIds.length > 0 && (
                 <Box sx={{ mt: 3 }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Recent Patient IDs:
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                     {recentUserIds.map((id) => (
                       <Button
                         key={id}
@@ -207,15 +229,11 @@ function App() {
                   </Box>
                 </Box>
               )}
-              
+
               <Divider sx={{ my: 3 }} />
-              
-              <Box sx={{ mt: 2, textAlign: 'right' }}>
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  color="primary"
-                >
+
+              <Box sx={{ mt: 2, textAlign: "right" }}>
+                <Button type="submit" variant="contained" color="primary">
                   {isNewRecord ? "Create New Record" : "Load Record"}
                 </Button>
               </Box>
@@ -223,28 +241,43 @@ function App() {
           </Paper>
         ) : (
           <>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">
-                Patient ID: {userId}
-              </Typography>
-              <Button 
-                variant="outlined" 
-                onClick={() => setShowForm(false)}
-              >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Typography variant="h6">Patient ID: {userId}</Typography>
+              <Button variant="outlined" onClick={() => setShowForm(false)}>
                 Back to ID Selection
               </Button>
             </Box>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider', flexGrow: 1 }}>
-                <Tabs value={activeTab} onChange={handleTabChange} aria-label="Form tabs">
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Box
+                sx={{ borderBottom: 1, borderColor: "divider", flexGrow: 1 }}
+              >
+                <Tabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  aria-label="Form tabs"
+                >
                   <Tab label="Form" />
                   <Tab label="Configure" />
                 </Tabs>
               </Box>
               {activeTab === 1 && (
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   color="error"
                   size="small"
                   onClick={handleResetConfig}
@@ -255,7 +288,11 @@ function App() {
               )}
             </Box>
             {activeTab === 0 ? (
-              <DynamicForm config={formConfig} userId={userId} />
+              <DynamicForm
+                config={formConfig}
+                userId={userId}
+                onSuccess={() => setShowForm(false)}
+              />
             ) : (
               <FormEditor config={formConfig} onChange={handleConfigChange} />
             )}
@@ -263,7 +300,7 @@ function App() {
         )}
       </Box>
     </Container>
-  )
+  );
 }
 
-export default App 
+export default App;

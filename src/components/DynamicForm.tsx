@@ -1,16 +1,35 @@
-import { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Button, CircularProgress, Alert, Switch, FormControlLabel, TextField } from '@mui/material';
-import { useForm } from 'react-hook-form';
-import FormField from './FormField';
-import { FormConfig, FormData } from '../types';
-import { saveToGoogleSheets, fetchUserData } from '../services/googleSheets';
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  CircularProgress,
+  Alert,
+  Switch,
+  FormControlLabel,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import { useForm } from "react-hook-form";
+import FormField from "./FormField";
+import { FormConfig, FormData } from "../types";
+import { saveToGoogleSheets, fetchUserData } from "../services/googleSheets";
 
 interface DynamicFormProps {
   config: FormConfig;
   userId: string;
+  onSuccess?: () => void;
 }
 
-export default function DynamicForm({ config, userId }: DynamicFormProps) {
+export default function DynamicForm({
+  config,
+  userId,
+  onSuccess,
+}: DynamicFormProps) {
   const { register, handleSubmit, setValue, reset } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -18,41 +37,42 @@ export default function DynamicForm({ config, userId }: DynamicFormProps) {
   const [userDataFound, setUserDataFound] = useState(false);
   const [loadExistingRecord, setLoadExistingRecord] = useState(true);
   const [patientId, setPatientId] = useState(userId);
-  
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+
   // Remove automatic loading of user data when userId changes
   // Instead we'll load it manually when the user clicks the load button
-  
+
   const loadUserData = async (userIdToLoad: string) => {
     if (!userIdToLoad) return;
-    
+
     setLoading(true);
     setError(null);
     setUserDataFound(false);
-    
+
     try {
-      console.log('Loading data for user:', userIdToLoad);
+      console.log("Loading data for user:", userIdToLoad);
       const userData = await fetchUserData(userIdToLoad);
-      
+
       if (userData) {
-        console.log('User data found:', userData);
+        console.log("User data found:", userData);
         setUserDataFound(true);
-        
+
         // Reset form first to clear any previous values
         reset();
-        
+
         // Pre-fill the form with user data
-        config.fields.forEach(field => {
+        config.fields.forEach((field) => {
           if (userData[field.id] !== undefined) {
             // Handle different field types
-            if (field.type === 'boolean' || field.type === 'codedValue') {
+            if (field.type === "boolean" || field.type === "codedValue") {
               // Convert numeric values to strings for radio buttons
               setValue(field.id, String(userData[field.id]));
-            } else if (field.type === 'date' && userData[field.id]) {
+            } else if (field.type === "date" && userData[field.id]) {
               // Format date values properly
               const dateVal = userData[field.id];
-              if (typeof dateVal === 'string') {
+              if (typeof dateVal === "string") {
                 // For ISO dates, extract just the YYYY-MM-DD part
-                const datePart = dateVal.split('T')[0];
+                const datePart = dateVal.split("T")[0];
                 setValue(field.id, datePart);
               } else {
                 setValue(field.id, dateVal);
@@ -64,17 +84,19 @@ export default function DynamicForm({ config, userId }: DynamicFormProps) {
           }
         });
       } else {
-        console.log('No user data found for ID:', userIdToLoad);
+        console.log("No user data found for ID:", userIdToLoad);
         reset(); // Clear form if no data found
       }
     } catch (err) {
-      console.error('Error loading user data:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error loading user data');
+      console.error("Error loading user data:", err);
+      setError(
+        err instanceof Error ? err.message : "Unknown error loading user data",
+      );
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Load initial data when component mounts if loadExistingRecord is true
   useEffect(() => {
     if (loadExistingRecord && userId) {
@@ -82,55 +104,67 @@ export default function DynamicForm({ config, userId }: DynamicFormProps) {
       loadUserData(userId);
     }
   }, []);
-  
+
   const onSubmit = async (data: FormData) => {
     setSaveLoading(true);
     setError(null);
-    
+
     try {
       const processedData = { ...data };
-      
-      config.fields.forEach(field => {
-        if (field.type === 'date' && processedData[field.id]) {
+
+      config.fields.forEach((field) => {
+        if (field.type === "date" && processedData[field.id]) {
           const dateValue = processedData[field.id];
-          if (typeof dateValue === 'string' && !dateValue.includes('T')) {
+          if (typeof dateValue === "string" && !dateValue.includes("T")) {
             processedData[field.id] = dateValue;
           }
-        } else if ((field.type === 'boolean' || field.type === 'codedValue') && processedData[field.id] !== undefined) {
+        } else if (
+          (field.type === "boolean" || field.type === "codedValue") &&
+          processedData[field.id] !== undefined
+        ) {
           processedData[field.id] = Number(processedData[field.id]);
         }
       });
-      
+
       const formData = {
         ...processedData,
         userId: patientId,
         timestamp: new Date().toISOString(),
       };
-      
-      console.log('Submitting form data:', formData);
+
+      console.log("Submitting form data:", formData);
       const result = await saveToGoogleSheets(formData);
-      console.log('Save result:', result);
-      
+      console.log("Save result:", result);
+
       if (result.success) {
-        alert('Data saved successfully to Google Sheets!');
+        setShowSuccessDialog(true);
       } else {
-        throw new Error(result.error || 'Unknown error saving data');
+        throw new Error(result.error || "Unknown error saving data");
       }
     } catch (err) {
-      console.error('Error saving data:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error saving data');
+      console.error("Error saving data:", err);
+      setError(
+        err instanceof Error ? err.message : "Unknown error saving data",
+      );
     } finally {
       setSaveLoading(false);
     }
   };
-  
+
+  const handleSuccessDialogClose = () => {
+    setShowSuccessDialog(false);
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
       <Typography variant="h6" gutterBottom>
-        {config.title || 'Data Collection Form'}
+        {config.title || "Data Collection Form"}
       </Typography>
-      
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+
+      <Box sx={{ mb: 3, display: "flex", alignItems: "center" }}>
         <FormControlLabel
           control={
             <Switch
@@ -141,73 +175,99 @@ export default function DynamicForm({ config, userId }: DynamicFormProps) {
           }
           label="Load existing record"
         />
-        
-        <TextField 
+
+        <TextField
           label="Patient ID"
           value={patientId}
           onChange={(e) => setPatientId(e.target.value)}
           size="small"
           sx={{ ml: 2, flexGrow: 1 }}
         />
-        
+
         <Button
           variant="outlined"
           onClick={() => loadUserData(patientId)}
           disabled={loading || !loadExistingRecord}
           sx={{ ml: 2 }}
         >
-          {loading ? <CircularProgress size={24} /> : 'Load Records'}
+          {loading ? <CircularProgress size={24} /> : "Load Records"}
         </Button>
       </Box>
-      
+
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
           <CircularProgress />
         </Box>
       ) : (
         <>
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          
-          {userDataFound && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Previous data loaded for user ID: {patientId}. You can make changes and submit to create a new entry.
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
             </Alert>
           )}
-          
+
+          {userDataFound && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Previous data loaded for user ID: {patientId}. You can make
+              changes and submit to create a new entry.
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)}>
             {config.groups.map((group) => {
-              const groupFields = config.fields.filter((field) => field.group === group);
-              
+              const groupFields = config.fields.filter(
+                (field) => field.group === group,
+              );
+
               if (groupFields.length === 0) {
                 return null;
               }
-              
+
               return (
                 <Box key={group} sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: "bold", mb: 1 }}
+                  >
                     {group}
                   </Typography>
-                  
+
                   {groupFields.map((field) => (
-                    <FormField key={field.id} field={field} register={register} />
+                    <FormField
+                      key={field.id}
+                      field={field}
+                      register={register}
+                    />
                   ))}
                 </Box>
               );
             })}
-            
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button 
-                type="submit" 
-                variant="contained" 
+
+            <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
+              <Button
+                type="submit"
+                variant="contained"
                 color="primary"
                 disabled={saveLoading}
               >
-                {saveLoading ? <CircularProgress size={24} /> : 'Save Data'}
+                {saveLoading ? <CircularProgress size={24} /> : "Save Data"}
               </Button>
             </Box>
           </form>
         </>
       )}
+
+      <Dialog open={showSuccessDialog} onClose={handleSuccessDialogClose}>
+        <DialogTitle>Success</DialogTitle>
+        <DialogContent>
+          <Typography>Data saved successfully to Google Sheets!</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleSuccessDialogClose} color="primary" autoFocus>
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
-} 
+}
