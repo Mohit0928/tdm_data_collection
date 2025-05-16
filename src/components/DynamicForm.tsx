@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Button, CircularProgress, Alert, Switch, FormControlLabel, TextField } from '@mui/material';
-import { useForm, UseFormRegister } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import FormField from './FormField';
 import { FormConfig, FormData } from '../types';
 import { saveToGoogleSheets, fetchUserData } from '../services/googleSheets';
@@ -11,7 +11,7 @@ interface DynamicFormProps {
 }
 
 export default function DynamicForm({ config, userId }: DynamicFormProps) {
-  const { register, handleSubmit, watch, setValue, reset } = useForm<FormData>();
+  const { register, handleSubmit, setValue, reset } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

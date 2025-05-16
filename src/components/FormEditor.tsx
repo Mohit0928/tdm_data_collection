@@ -24,7 +24,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import { FormField, FieldType, FormConfig, CodedOption } from '../types';
+import { FormField, FormConfig, CodedOption } from '../types';
 
 interface FormEditorProps {
   config: FormConfig;
