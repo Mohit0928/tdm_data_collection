@@ -15,10 +15,11 @@ import {
   FormLabel,
 } from '@mui/material';
 import { FormField as FormFieldType } from '../types';
+import { UseFormRegister } from 'react-hook-form';
 
 interface FormFieldProps {
   field: FormFieldType;
-  register: any;
+  register: UseFormRegister<any>;
 }
 
 export default function FormField({ field, register }: FormFieldProps) {

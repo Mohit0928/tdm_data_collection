@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Button, CircularProgress, Alert, Switch, FormControlLabel, TextField } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormRegister } from 'react-hook-form';
 import FormField from './FormField';
 import { FormConfig, FormData } from '../types';
 import { saveToGoogleSheets, fetchUserData } from '../services/googleSheets';
@@ -199,10 +199,10 @@ export default function DynamicForm({ config, userId }: DynamicFormProps) {
               <Button 
                 type="submit" 
                 variant="contained" 
+                color="primary"
                 disabled={saveLoading}
-                startIcon={saveLoading ? <CircularProgress size={20} /> : null}
               >
-                {saveLoading ? 'Saving...' : 'Submit'}
+                {saveLoading ? <CircularProgress size={24} /> : 'Save Data'}
               </Button>
             </Box>
           </form>

@@ -1,6 +1,6 @@
 // Load Google Script URL from environment variable
-const GOOGLE_SCRIPT_URL = process.env.REACT_APP_GOOGLE_SCRIPT_URL || '';
-const USE_MOCK_IMPLEMENTATION = !GOOGLE_SCRIPT_URL;
+const REACT_APP_GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL || '';
+const USE_MOCK_IMPLEMENTATION = !REACT_APP_GOOGLE_SCRIPT_URL;
 
 // Add a flag to track form submissions in the current session
 // This helps prevent duplicate submissions
@@ -55,7 +55,7 @@ function fetchWithJsonp(userId: string): Promise<any> {
     
     // Create script element
     const script = document.createElement('script');
-    script.src = `${GOOGLE_SCRIPT_URL}?userId=${encodeURIComponent(userId)}&callback=${callbackName}`;
+    script.src = `${REACT_APP_GOOGLE_SCRIPT_URL}?userId=${encodeURIComponent(userId)}&callback=${callbackName}`;
     script.onerror = () => {
       // Clean up
       document.body.removeChild(script);
@@ -157,7 +157,7 @@ function saveWithForm(data: any): Promise<any> {
     const form = document.createElement('form');
     form.id = formId;
     form.method = 'POST';
-    form.action = GOOGLE_SCRIPT_URL;
+    form.action = REACT_APP_GOOGLE_SCRIPT_URL;
     form.target = iframeId;
     form.style.display = 'none';
     

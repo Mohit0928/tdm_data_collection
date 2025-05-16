@@ -10,7 +10,8 @@ import {
   Button, 
   Switch, 
   FormControlLabel, 
-  Divider 
+  Divider,
+  Alert
 } from '@mui/material'
 import DynamicForm from './components/DynamicForm'
 import FormEditor from './components/FormEditor'
@@ -30,29 +31,40 @@ function App() {
   const [formConfig, setFormConfig] = useState<FormConfig>(defaultFormConfig)
   const [isNewRecord, setIsNewRecord] = useState(true)
   const [recentUserIds, setRecentUserIds] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
   
   // Load the saved configuration when the component mounts
   useEffect(() => {
-    const savedConfig = localStorage.getItem(FORM_CONFIG_STORAGE_KEY);
-    if (savedConfig) {
-      try {
-        const parsedConfig = JSON.parse(savedConfig);
-        setFormConfig(parsedConfig);
-        console.log('Form configuration loaded from local storage');
-      } catch (error) {
-        console.error('Error loading form configuration from local storage:', error);
+    try {
+      console.log('App component mounting...');
+      const savedConfig = localStorage.getItem(FORM_CONFIG_STORAGE_KEY);
+      if (savedConfig) {
+        try {
+          const parsedConfig = JSON.parse(savedConfig);
+          setFormConfig(parsedConfig);
+          console.log('Form configuration loaded from local storage:', parsedConfig);
+        } catch (error) {
+          console.error('Error loading form configuration from local storage:', error);
+          setError('Error loading form configuration');
+        }
+      } else {
+        console.log('No saved configuration found, using default config');
       }
-    }
 
-    // Load recent user IDs
-    const savedUserIds = localStorage.getItem(RECENT_USER_IDS_KEY);
-    if (savedUserIds) {
-      try {
-        const parsedUserIds = JSON.parse(savedUserIds);
-        setRecentUserIds(parsedUserIds);
-      } catch (error) {
-        console.error('Error loading recent user IDs:', error);
+      // Load recent user IDs
+      const savedUserIds = localStorage.getItem(RECENT_USER_IDS_KEY);
+      if (savedUserIds) {
+        try {
+          const parsedUserIds = JSON.parse(savedUserIds);
+          setRecentUserIds(parsedUserIds);
+          console.log('Recent user IDs loaded:', parsedUserIds);
+        } catch (error) {
+          console.error('Error loading recent user IDs:', error);
+        }
       }
+    } catch (error) {
+      console.error('Error in App component initialization:', error);
+      setError('Error initializing application');
     }
   }, []);
 
@@ -128,6 +140,12 @@ function App() {
         <Typography variant="h4" component="h1" gutterBottom align="center">
           TDM Data Collection
         </Typography>
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         
         {!showForm ? (
           <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
